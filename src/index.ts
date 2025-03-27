@@ -33,7 +33,8 @@ import { table } from 'table';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as readline from 'readline';
-import packageJson from './package.json';
+// Package version
+const packageJson = { version: '0.1.0' };
 
 // Configuration
 const DEFAULT_REQUEST_TIMEOUT = 10000;
@@ -774,8 +775,8 @@ class MCPInspectorCLI {
       console.log(chalk.cyan('\nTool Result:'));
       
       // Handle different result formats
-      if ('content' in response) {
-        for (const item of response.content) {
+      if ('content' in response && Array.isArray(response.content)) {
+        for (const item of response.content as any[]) {
           if (item.type === 'text') {
             console.log(item.text);
           } else if (item.type === 'image') {
@@ -1106,7 +1107,7 @@ program
   .option('-b, --bearer-token <token>', 'Bearer token for authentication (for sse transport)')
   .option('-e, --env <json>', 'Environment variables as JSON (for stdio transport)')
   .option('-i, --interactive', 'Start in interactive mode after connecting', false)
-  .action(async (options) => {
+  .action(async (options: { transport: string; command: string; args: string; url: string; bearerToken?: string; env?: string; interactive: boolean }) => {
     const cli = new MCPInspectorCLI();
     
     try {
@@ -1136,7 +1137,7 @@ resourcesCommand
   .command('list')
   .description('List available resources')
   .option('--cursor <cursor>', 'Cursor for pagination')
-  .action(async (options) => {
+  .action(async (options: { cursor?: string }) => {
     const cli = new MCPInspectorCLI();
     
     try {
@@ -1152,7 +1153,7 @@ resourcesCommand
   .command('templates')
   .description('List available resource templates')
   .option('--cursor <cursor>', 'Cursor for pagination')
-  .action(async (options) => {
+  .action(async (options: { cursor?: string }) => {
     const cli = new MCPInspectorCLI();
     
     try {
@@ -1167,7 +1168,7 @@ resourcesCommand
 resourcesCommand
   .command('read <uri>')
   .description('Read a specific resource')
-  .action(async (uri) => {
+  .action(async (uri: string) => {
     const cli = new MCPInspectorCLI();
     
     try {
@@ -1182,7 +1183,7 @@ resourcesCommand
 resourcesCommand
   .command('subscribe <uri>')
   .description('Subscribe to resource updates')
-  .action(async (uri) => {
+  .action(async (uri: string) => {
     const cli = new MCPInspectorCLI();
     
     try {
@@ -1197,7 +1198,7 @@ resourcesCommand
 resourcesCommand
   .command('unsubscribe <uri>')
   .description('Unsubscribe from resource updates')
-  .action(async (uri) => {
+  .action(async (uri: string) => {
     const cli = new MCPInspectorCLI();
     
     try {
@@ -1218,7 +1219,7 @@ promptsCommand
   .command('list')
   .description('List available prompts')
   .option('--cursor <cursor>', 'Cursor for pagination')
-  .action(async (options) => {
+  .action(async (options: { cursor?: string }) => {
     const cli = new MCPInspectorCLI();
     
     try {
@@ -1234,7 +1235,7 @@ promptsCommand
   .command('get <name>')
   .description('Get a specific prompt')
   .option('-a, --arg <arg...>', 'Prompt arguments in format name=value')
-  .action(async (name, options) => {
+  .action(async (name: string, options: { arg?: string[] }) => {
     const cli = new MCPInspectorCLI();
     
     // Parse arguments
@@ -1266,7 +1267,7 @@ toolsCommand
   .command('list')
   .description('List available tools')
   .option('--cursor <cursor>', 'Cursor for pagination')
-  .action(async (options) => {
+  .action(async (options: { cursor?: string }) => {
     const cli = new MCPInspectorCLI();
     
     try {
@@ -1283,7 +1284,7 @@ toolsCommand
   .description('Call a specific tool')
   .option('-p, --param <param...>', 'Tool parameters in format name=value')
   .option('-j, --json-param <param...>', 'JSON tool parameters in format name=\'{"key":"value"}\'')
-  .action(async (name, options) => {
+  .action(async (name: string, options: { param?: string[]; jsonParam?: string[] }) => {
     const cli = new MCPInspectorCLI();
     
     // Parse parameters
@@ -1347,7 +1348,7 @@ program
   .option('-u, --url <url>', 'URL of the MCP server (for sse transport)', 'http://localhost:3000/sse')
   .option('-b, --bearer-token <token>', 'Bearer token for authentication (for sse transport)')
   .option('-e, --env <json>', 'Environment variables as JSON (for stdio transport)')
-  .action(async (options) => {
+  .action(async (options: { transport: string; command: string; args: string; url: string; bearerToken?: string; env?: string; }) => {
     const cli = new MCPInspectorCLI();
     
     try {
