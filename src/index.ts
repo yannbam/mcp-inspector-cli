@@ -19,11 +19,13 @@ import {
   ResourceTemplate,
   ListResourceTemplatesResultSchema,
   CreateMessageResult,
+  CreateMessageRequestSchema,
   ProgressNotificationSchema,
   ResourceUpdatedNotificationSchema,
   LoggingMessageNotificationSchema,
   LoggingLevel,
   LoggingLevelSchema,
+  ListRootsRequestSchema,
 } from '@modelcontextprotocol/sdk/types.js';
 import chalk from 'chalk';
 import inquirer from 'inquirer';
@@ -182,8 +184,7 @@ class MCPInspectorCLI {
       
       // Handle pending sample requests
       client.setRequestHandler(
-        // @ts-ignore - TypeScript complains about the schema but this works at runtime
-        { method: 'messages/create' }, 
+        CreateMessageRequestSchema,
         (request) => {
           return new Promise((resolve, reject) => {
             const id = this.nextRequestId++;
@@ -205,8 +206,7 @@ class MCPInspectorCLI {
 
       // Handle root listing
       client.setRequestHandler(
-        // @ts-ignore
-        { method: 'roots/list' },
+        ListRootsRequestSchema,
         async () => {
           return { roots: this.roots };
         }
