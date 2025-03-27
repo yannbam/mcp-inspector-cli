@@ -81,11 +81,67 @@ function escapeUnicode(obj: unknown): string {
   );
 }
 
+// Define an ora-like replacement with a text property
+function createOraReplacement(initialText = '') {
+  let text = initialText; // Store text in closure
+
+  return {
+    get text() {
+      return text; // Getter for reading text
+    },
+    set text(newText: string) {
+      text = newText; // Setter for updating text
+    },
+    start: (msg?: string) => {
+      const displayText = msg || text;
+      console.log(displayText);
+      text = displayText; // Update text if msg is provided
+      return createOraReplacement(displayText); // Return new instance for chaining
+    },
+    succeed: (msg?: string) => {
+      const displayText = msg || text;
+      console.log(`${displayText} [OK]`);
+      text = displayText;
+      return createOraReplacement(displayText);
+    },
+    fail: (msg?: string) => {
+      const displayText = msg || text;
+      console.error(`${displayText} [FAILED]`);
+      text = displayText;
+      return createOraReplacement(displayText);
+    },
+    warn: (msg?: string) => {
+      const displayText = msg || text;
+      console.warn(`${displayText} [WARN]`);
+      text = displayText;
+      return createOraReplacement(displayText);
+    },
+    info: (msg?: string) => {
+      const displayText = msg || text;
+      console.log(`${displayText} [INFO]`);
+      text = displayText;
+      return createOraReplacement(displayText);
+    },
+    stop: () => {
+      // Do nothing
+      return createOraReplacement(text);
+    },
+    clear: () => {
+      // Do nothing
+      return createOraReplacement(text);
+    },
+    stopAndPersist: () => {
+      console.log(text);
+      return createOraReplacement(text);
+    },
+  };
+}
+
 // Main class for the MCP Inspector CLI
 class MCPInspectorCLI {
   private client: Client | null = null;
   private notificationCount = 0;
-  private spinner = ora();
+  private spinner = createOraReplacement(); // JB
   private serverCapabilities: any = null;
   private pendingSampleRequests: Array<{
     id: number;
@@ -97,7 +153,13 @@ class MCPInspectorCLI {
   private logLevel: LoggingLevel = 'debug';
   private roots: any[] = [];
 
-  constructor(private requestTimeout = DEFAULT_REQUEST_TIMEOUT) {}
+  constructor(private requestTimeout = DEFAULT_REQUEST_TIMEOUT) {
+    // this.spinner = ora({  // JB
+    //    text: 'Initializing ora...', // Optional initial text
+    //    stream: process.stderr // Route output to stderr
+    //   });
+    // this.spinner.isEnabled = false; // JB
+  }
 
   async connect(transportType: 'stdio' | 'sse', options: any): Promise<void> {
     this.spinner.start('Connecting to MCP server...');
@@ -240,6 +302,7 @@ class MCPInspectorCLI {
 
     if (!options.suppressOutput) {
       this.spinner.start('Sending request...');
+      console.log('Sending request...')
       console.log(chalk.blue('\n[Request]'), formatJSON(request, false));
     }
 
@@ -256,7 +319,8 @@ class MCPInspectorCLI {
       clearTimeout(timeoutId);
       
       if (!options.suppressOutput) {
-        this.spinner.succeed('Request successful');
+        this.spinner.succeed('Request successful'); //JB
+        console.log('Request successful');
         console.log(chalk.green('\n[Response]'), formatJSON(response));
       }
       
@@ -264,7 +328,8 @@ class MCPInspectorCLI {
     } catch (e) {
       const errorString = e instanceof Error ? e.message : String(e);
       if (!options.suppressOutput) {
-        this.spinner.fail(`Request failed: ${errorString}`);
+        this.spinner.fail(`Request failed: ${errorString}`); //JB
+        console.error(`Request failed: ${errorString}`);
       }
       throw e;
     }
